@@ -10,14 +10,15 @@ import {
   signOut,
 } from "firebase/auth";
 
-// Your Firebase config here
+// Firebase config
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyBgEEJnrw41nivT-l9IiVLE_Lzq4Rkw8aI",
+  authDomain: "the-ultimate-carnivore.firebaseapp.com",
+  projectId: "the-ultimate-carnivore",
+  storageBucket: "the-ultimate-carnivore.firebasestorage.app",
+  messagingSenderId: "314932218908",
+  appId: "1:314932218908:web:a02b4ea8bd48f1d6c5a3d9",
+  measurementId: "G-BN663LW3DQ"
 };
 
 // Initialize Firebase

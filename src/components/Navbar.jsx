@@ -11,9 +11,10 @@ const Navbar = () => {
     { name: "About", path: "/about" },
     { name: "Products", path: "/products" },
     { name: "Shop Cart", path: "/cart" },
-    { name: "Blog or Guides", path: "/blog" },
+    { name: "Blog And Guides", path: "/blog" },
     { name: "Contact", path: "/contact" },
     { name: "User Profile", path: "/profile" },
+    { name: "Login/SignUp", path: "/login" },
   ];
 
   return (
@@ -23,7 +24,7 @@ const Navbar = () => {
           {/* Logo or Site title */}
           <div className="flex-shrink-0 flex items-center">
             <Link to="/" className="text-xl font-bold text-blue-600">
-              CarnivoreDiet
+              The Ultimate Carnivore
             </Link>
           </div>
 
