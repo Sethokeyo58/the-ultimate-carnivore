@@ -3,7 +3,7 @@ import React from 'react'
 function Blog() {
   return (
     <div>
-        <p>dhcuifvof</p>
+        <p></p>
     </div>
   )
 }

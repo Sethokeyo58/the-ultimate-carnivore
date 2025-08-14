@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Login from  "./components/Login";
+import Contact from "./components/Contact";
+import About from "./components/About";
 
 const infoCards = [
   {
@@ -104,11 +106,11 @@ const Home = () => {
   );
 };
 
-const About = () => (
-  <div className="p-6 max-w-4xl mx-auto">
-    I will have my about information here. Have myself Seth, and other 2 people on as my team 
-  </div>
-);
+// const About = () => (
+//   <div className="p-6 max-w-4xl mx-auto">
+//     I will have my about information here. Have myself Seth, and other 2 people on as my team 
+//   </div>
+// );
 const Products = () => (
   <div className="p-6 max-w-4xl mx-auto">
     Have my products here Also, i will have products added 
@@ -120,11 +122,11 @@ const Cart = () => (
 const Blog = () => (
   <div className="p-6 max-w-4xl mx-auto">Articles or posts related to the diet</div>
 );
-const Contact = () => (
-  <div className="p-6 max-w-4xl mx-auto">
-    Contact form. i have my emailjs included "email i will use is Sethokeyo58@gmail.com"
-  </div>
-);
+// const Contact = () => (
+//   <div className="p-6 max-w-4xl mx-auto">
+    
+//   </div>
+// );
 const Profile = () => (
   <div className="p-6 max-w-4xl mx-auto">User profile page</div>
 );
