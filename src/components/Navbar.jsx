@@ -10,6 +10,7 @@ import {
   signInWithPopup,
   onAuthStateChanged,
   signOut,
+  updateProfile,
 } from "firebase/auth";
 
 // Firebase config (yours from the login JSX)
@@ -32,44 +33,67 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userDetails, setUserDetails] = useState({ email: "", password: "" });
 
+  // NEW: user object and signup toggle + error state + username
+  const [user, setUser] = useState(null);
+  const [isSignup, setIsSignup] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [username, setUsername] = useState("");
+
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      setIsLoggedIn(!!user);
-      if (user) setIsAuthOpen(false);
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setIsLoggedIn(!!u);
+      setUser(u);
+      if (u) setIsAuthOpen(false); // close modal when logged in
     });
     return unsub;
   }, []);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  // Login (and auto-signup if user not found)
-  const handleLogin = async (e) => {
+  // explicit login or signup depending on isSignup
+  const handleAuthSubmit = async (e) => {
     e.preventDefault();
+    setAuthError("");
     const { email, password } = userDetails;
-    if (!email || !password) return;
+    if (!email || !password) {
+      setAuthError("Please provide both email and password.");
+      return;
+    }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      setUserDetails({ email: "", password: "" });
-    } catch (err) {
-      if (err.code === "auth/user-not-found") {
-        try {
-          await createUserWithEmailAndPassword(auth, email, password);
-          setUserDetails({ email: "", password: "" });
-        } catch (e2) {
-          console.error(e2);
+      if (isSignup) {
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        // set displayName in Firebase so Profile.jsx can show it
+        if (username && userCred && userCred.user) {
+          await updateProfile(userCred.user, { displayName: username });
         }
+        // store masked password (for UI only) - NOT the real password
+        sessionStorage.setItem("profile_pwd_masked", "•".repeat(password.length));
+        setUsername("");
       } else {
-        console.error(err);
+        await signInWithEmailAndPassword(auth, email, password);
+        // store masked password (for UI only) - NOT the real password
+        sessionStorage.setItem("profile_pwd_masked", "•".repeat(password.length));
       }
+
+      setUserDetails({ email: "", password: "" });
+      setIsAuthOpen(false);
+    } catch (err) {
+      setAuthError(err.message || "Authentication error");
+      console.error("Auth error:", err);
     }
   };
 
   const handleGoogleLogin = async () => {
+    setAuthError("");
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+      // For Google sign-in there is no password; store a friendly message
+      sessionStorage.setItem("profile_pwd_masked", "Signed in with Google");
+      setIsAuthOpen(false);
     } catch (err) {
+      setAuthError(err.message || "Google sign-in failed");
       console.error(err);
     }
   };
@@ -78,8 +102,10 @@ const Navbar = () => {
     try {
       await signOut(auth);
       setUserDetails({ email: "", password: "" });
+      setUser(null);
+      sessionStorage.removeItem("profile_pwd_masked");
     } catch (err) {
-      console.error(err);
+      console.error("Logout error:", err);
     }
   };
 
@@ -123,17 +149,43 @@ const Navbar = () => {
                 </NavLink>
               ))}
 
-              {/* Login / Logout Button */}
-              {isLoggedIn ? (
-                <button
-                  onClick={handleLogout}
-                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-yellow-500 hover:text-red-900"
-                >
-                  Logout
-                </button>
+              {/* show profile pic & name/email when logged in */}
+              {isLoggedIn && user ? (
+                <>
+                  <NavLink
+                    to="/profile"
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-yellow-500 hover:text-red-900"
+                  >
+                    {user.photoURL ? (
+                      <img
+                        src={user.photoURL}
+                        alt="profile"
+                        className="h-8 w-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-red-600 flex items-center justify-center text-sm">
+                        {user.email ? user.email.charAt(0).toUpperCase() : "U"}
+                      </div>
+                    )}
+                    <span className="whitespace-nowrap">
+                      {user.displayName || user.email}
+                    </span>
+                  </NavLink>
+
+                  <button
+                    onClick={handleLogout}
+                    className="px-3 py-2 rounded-md text-sm font-medium hover:bg-yellow-500 hover:text-red-900"
+                  >
+                    Logout
+                  </button>
+                </>
               ) : (
                 <button
-                  onClick={() => setIsAuthOpen(true)}
+                  onClick={() => {
+                    setIsAuthOpen(true);
+                    setIsSignup(false); // default to login
+                    setAuthError("");
+                  }}
                   className="px-3 py-2 rounded-md text-sm font-medium hover:bg-yellow-500 hover:text-red-900"
                 >
                   Login / Signup
@@ -174,21 +226,46 @@ const Navbar = () => {
                   {name}
                 </NavLink>
               ))}
-              {isLoggedIn ? (
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setIsOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 rounded-md hover:bg-yellow-500 hover:text-red-900"
-                >
-                  Logout
-                </button>
+              {isLoggedIn && user ? (
+                <>
+                  <NavLink
+                    to="/profile"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium hover:bg-yellow-500 hover:text-red-900"
+                  >
+                    {user.photoURL ? (
+                      <img
+                        src={user.photoURL}
+                        alt="profile"
+                        className="h-8 w-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-red-600 flex items-center justify-center text-sm">
+                        {user.email ? user.email.charAt(0).toUpperCase() : "U"}
+                      </div>
+                    )}
+                    <span className="whitespace-nowrap">
+                      {user.displayName || user.email}
+                    </span>
+                  </NavLink>
+
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-md hover:bg-yellow-500 hover:text-red-900"
+                  >
+                    Logout
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={() => {
                     setIsAuthOpen(true);
+                    setIsSignup(false);
                     setIsOpen(false);
+                    setAuthError("");
                   }}
                   className="w-full text-left px-3 py-2 rounded-md hover:bg-yellow-500 hover:text-red-900"
                 >
@@ -204,8 +281,29 @@ const Navbar = () => {
       {isAuthOpen && !isLoggedIn && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white text-black p-6 rounded-lg w-80 shadow-lg">
-            <h2 className="text-2xl font-semibold mb-4">Login / Signup</h2>
-            <form onSubmit={handleLogin} className="flex flex-col gap-3">
+            <h2 className="text-2xl font-semibold mb-4">
+              {isSignup ? "Sign Up" : "Login"}
+            </h2>
+
+            {/* show auth error if any */}
+            {authError && (
+              <div className="mb-2 text-red-600 text-sm border border-red-200 bg-red-50 rounded p-2">
+                {authError}
+              </div>
+            )}
+
+            <form onSubmit={handleAuthSubmit} className="flex flex-col gap-3">
+              {isSignup && (
+                <input
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="border p-2 rounded"
+                  required
+                />
+              )}
+
               <input
                 type="email"
                 placeholder="Email"
@@ -230,7 +328,7 @@ const Navbar = () => {
                 type="submit"
                 className="bg-red-800 text-white py-2 rounded hover:bg-red-900"
               >
-                Submit
+                {isSignup ? "Sign Up" : "Login"}
               </button>
 
               <button
@@ -241,9 +339,45 @@ const Navbar = () => {
                 Continue with Google
               </button>
 
+              {/* Toggle between login and signup */}
+              <div className="mt-4 text-sm text-center">
+                {isSignup ? (
+                  <p>
+                    Already have an account?{" "}
+                    <button
+                      type="button"
+                      className="text-blue-600 hover:underline"
+                      onClick={() => {
+                        setIsSignup(false);
+                        setAuthError("");
+                      }}
+                    >
+                      Login
+                    </button>
+                  </p>
+                ) : (
+                  <p>
+                    Don't have an account?{" "}
+                    <button
+                      type="button"
+                      className="text-blue-600 hover:underline"
+                      onClick={() => {
+                        setIsSignup(true);
+                        setAuthError("");
+                      }}
+                    >
+                      Sign Up
+                    </button>
+                  </p>
+                )}
+              </div>
+
               <button
                 type="button"
-                onClick={() => setIsAuthOpen(false)}
+                onClick={() => {
+                  setIsAuthOpen(false);
+                  setAuthError("");
+                }}
                 className="mt-2 text-gray-600 hover:underline"
               >
                 Cancel
