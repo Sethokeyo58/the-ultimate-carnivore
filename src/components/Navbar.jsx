@@ -13,7 +13,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 
-// Firebase config (yours from the login JSX)
+// Firebase config 
 const firebaseConfig = {
   apiKey: "AIzaSyBgEEJnrw41nivT-l9IiVLE_Lzq4Rkw8aI",
   authDomain: "the-ultimate-carnivore.firebaseapp.com",
@@ -50,7 +50,7 @@ const Navbar = () => {
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  // explicit login or signup depending on isSignup
+  // login or signup depending on isSignup
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setAuthError("");
@@ -89,7 +89,7 @@ const Navbar = () => {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      // For Google sign-in there is no password; store a friendly message
+      // For Google sign-in there is no password; 
       sessionStorage.setItem("profile_pwd_masked", "Signed in with Google");
       setIsAuthOpen(false);
     } catch (err) {
@@ -121,10 +121,10 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="bg-red-800 shadow-md text-white">
+      <nav className="bg-red-800 shadow-md text-white fixed top-0 lef-0 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
-            {/* Brand (logo removed as requested) */}
+            
             <div className="flex items-center gap-2">
               <Link to="/" className="text-xl font-bold">
                 The Ultimate Carnivore
