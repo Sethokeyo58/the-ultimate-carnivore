@@ -116,7 +116,7 @@ const Navbar = () => {
     { name: "Shop Cart", path: "/cart" },
     { name: "Blog And Guides", path: "/blog" },
     { name: "Contact", path: "/contact" },
-    { name: "User Profile", path: "/profile" },
+   
   ];
 
   return (

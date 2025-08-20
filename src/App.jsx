@@ -144,7 +144,6 @@ const App = () => {
           <Route path="/blog" element={<Blog />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/profile" element={<Profile />} />
         </Routes>
       </main>
       <Footer />
