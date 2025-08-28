@@ -1,148 +1,59 @@
-import React, { useState, useEffect } from "react";
-import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-  onAuthStateChanged,
-  signOut,
-} from "firebase/auth";
+import React from "react";
+import { useCart } from "./CartContext";
 
-// Your Firebase config here
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
-};
+export default function Cart() {
+  const { cart, removeFromCart, clearCart } = useCart();
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-export default function App() {
-  const [user, setUser] = useState(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isSignup, setIsSignup] = useState(false);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return unsubscribe;
-  }, []);
-
-  const handleSignup = async () => {
-    setError("");
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      setEmail("");
-      setPassword("");
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleLogin = async () => {
-    setError("");
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      setEmail("");
-      setPassword("");
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setError("");
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleLogout = async () => {
-    await signOut(auth);
-  };
+  const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded shadow p-8">
-        {user ? (
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">Welcome, {user.email}</h2>
-            <button
-              onClick={handleLogout}
-              className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600"
-            >
-              Log Out
-            </button>
-          </div>
-        ) : (
-          <>
-            <h2 className="text-2xl font-bold mb-6 text-center">
-              {isSignup ? "Sign Up" : "Log In"}
-            </h2>
+    <section className="max-w-4xl mx-auto p-6">
+      <h2 className="text-3xl font-bold mb-6 mt-7 text-center">Your Cart</h2>
 
-            {error && (
-              <div className="mb-4 text-red-600 border border-red-600 rounded p-2">
-                {error}
+      {cart.length === 0 ? (
+        <p className="text-center text-gray-500">Your cart is empty.</p>
+      ) : (
+        <div className="space-y-4">
+          {cart.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center justify-between bg-white shadow rounded-lg p-4"
+            >
+              <div className="flex items-center gap-4">
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="h-16 w-16 object-cover rounded"
+                />
+                <div>
+                  <h3 className="text-lg font-semibold">{item.name}</h3>
+                  <p className="text-gray-600">
+                    ${item.price} × {item.quantity}
+                  </p>
+                </div>
               </div>
-            )}
-
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 p-2 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-300 p-2 rounded mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
-            <button
-              onClick={isSignup ? handleSignup : handleLogin}
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-4"
-            >
-              {isSignup ? "Sign Up" : "Log In"}
-            </button>
-
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 mb-4"
-            >
-              Continue with Google
-            </button>
-
-            <p className="text-center text-gray-600">
-              {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
               <button
-                onClick={() => {
-                  setError("");
-                  setIsSignup(!isSignup);
-                }}
-                className="text-blue-600 hover:underline"
+                onClick={() => removeFromCart(item.id)}
+                className="text-red-600 hover:text-red-800 font-medium"
               >
-                {isSignup ? "Log In" : "Sign Up"}
+                Remove
               </button>
-            </p>
-          </>
-        )}
-      </div>
-    </div>
+            </div>
+          ))}
+
+          <div className="flex justify-between items-center mt-6 font-bold text-xl">
+            <span>Total:</span>
+            <span>${total.toFixed(2)}</span>
+          </div>
+
+          <button
+            onClick={clearCart}
+            className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-800 transition mt-4"
+          >
+            Clear Cart
+          </button>
+        </div>
+      )}
+    </section>
   );
 }
